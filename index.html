@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>immotrail-server - Minecraftサーバー</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #ff6b35;
+            --secondary-color: #f7931e;
+            --dark-bg: #0f1419;
+            --card-bg: #1a1f2e;
+            --text-light: #ffffff;
+            --text-muted: #a0a0a0;
+            --border-color: #2d3748;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* ヘッダー */
+        header {
+            background: linear-gradient(135deg, #1a1f2e 0%, #0f1419 100%);
+            border-bottom: 2px solid var(--primary-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+        }
+
+        header .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 80px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        nav a:hover {
+            color: var(--primary-color);
+        }
+
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transition: width 0.3s;
+        }
+
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        /* メインビジュアル */
+        .hero {
+            background: linear-gradient(135deg, #1a3a52 0%, #0f1419 100%);
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%231a1f2e" width="1200" height="600"/><path d="M100,300 Q300,200 500,300 T900,300" stroke="%23ff6b35" stroke-width="1" fill="none" opacity="0.1"/></svg>');
+            background-size: cover;
+            padding: 100px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255,107,53,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255,107,53,0.3);
+        }
+
+        .hero p {
+            font-size: 1.3em;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: transform 0.3s, box-shadow 0.3s;
+            margin: 10px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.4);
+        }
+
+        .cta-button.secondary {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        /* コンテナ */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* セクション */
+        section {
+            padding: 80px 20px;
+            position: relative;
+        }
+
+        section.dark {
+            background-color: var(--dark-bg);
+        }
+
+        section.light {
+            background-color: var(--card-bg);
+        }
+
+        section h2 {
+            font-size: 2.5em;
+            margin-bottom: 50px;
+            text-align: center;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        /* カードグリッド */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 30px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,107,53,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .card:hover::before {
+            left: 100%;
+        }
+
+        .card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255,107,53,0.2);
+        }
+
+        .card-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .card p {
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        /* スーバーアドレスセクション */
+        .server-info {
+            background-color: var(--card-bg);
+            border-left: 4px solid var(--primary-color);
+            padding: 30px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .server-info:hover {
+            box-shadow: 0 10px 30px rgba(255,107,53,0.2);
+        }
+
+        .server-info h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .server-address {
+            background-color: var(--dark-bg);
+            padding: 15px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            color: var(--secondary-color);
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .copy-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            white-space: nowrap;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        /* ルール */
+        .rules-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .rules-list li {
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: var(--card-bg);
+            border-left: 3px solid var(--primary-color);
+            border-radius: 5px;
+            font-size: 1.1em;
+        }
+
+        .rules-list li::before {
+            content: '✓ ';
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        /* テーブル */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:hover {
+            background-color: rgba(255,107,53,0.05);
+        }
+
+        /* ビデオ埋め込み */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* フッター */
+        footer {
+            background-color: #000000;
+            color: var(--text-muted);
+            padding: 50px 20px 20px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            margin-bottom: 30px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .footer-copyright {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        /* レスポンシブ */
+        @media (max-width: 768px) {
+            header .container {
+                flex-direction: column;
+                height: auto;
+                padding: 15px 20px;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                gap: 15px;
+                justify-content: center;
+                margin-top: 15px;
+            }
+
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .hero p {
+                font-size: 1em;
+            }
+
+            section h2 {
+                font-size: 1.8em;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* アニメーション */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* モバイルナビゲーション */
+        .mobile-menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            nav {
+                display: none;
+            }
+
+            nav.active {
+                display: block;
+                position: absolute;
+                top: 80px;
+                left: 0;
+                right: 0;
+                background-color: var(--card-bg);
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            nav ul {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            nav a {
+                display: block;
+                padding: 15px 20px;
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+
+        /* 通知バナー */
+        .banner {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 20px;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 2px solid #ff4500;
+        }
+    </style>
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header>
+        <div class="container" style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; height: 80px; padding: 0 20px;">
+            <a href="#" class="logo">🎮 immotrail-server</a>
+            <button class="mobile-menu-toggle" id="menuToggle">☰</button>
+            <nav id="mainNav">
+                <ul>
+                    <li><a href="#home">ホーム</a></li>
+                    <li><a href="#server">サーバー</a></li>
+                    <li><a href="#guide">ガイド</a></li>
+                    <li><a href="#rules">ルール</a></li>
+                    <li><a href="#contact">Q&A</a></li>
+                    <li><a href="#omake">おまけ🎮</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- メインビジュアル -->
+    <section class="hero" id="home">
+        <div class="hero-content">
+            <h1>⛏️ immotrail-server へようこそ！</h1>
+            <p>Java版Minecraft向けの遊びやすいマルチプレイサーバー</p>
+            <p style="font-size: 1.1em; color: var(--text-light);">楽しいコミュニティで、一緒にマイクラライフを楽しもう！</p>
+            <div style="margin-top: 30px;">
+                <a href="#server" class="cta-button">サーバーに参加する</a>
+                <a href="#guide" class="cta-button secondary">ガイドを見る</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- 特徴セクション -->
+    <section class="dark">
+        <div class="container">
+            <h2>このサーバーの特徴</h2>
+            <div class="cards-grid">
+                <div class="card fade-in">
+                    <div class="card-icon">🌍</div>
+                    <h3>遊びやすい</h3>
+                    <p>初心者から上級者まで、みんなが楽しめるように工夫されたサーバーです。</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">👥</div>
+                    <h3>フレンドリー</h3>
+                    <p>マナーを大切にするフレンドリーなコミュニティ。安心して遊べます。</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🎮</div>
+                    <h3>複数バージョン対応</h3>
+                    <p>Java版全バージョンに対応。統合版も対応予定です。</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🛡️</div>
+                    <h3>安全第一</h3>
+                    <p>チート・グリッチ禁止。安心してプレイできる環境を整備しています。</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">⚡</div>
+                    <h3>安定運営</h3>
+                    <p>平日午後4時から、休日はマイペースで運営。楽しい時間を提供します。</p>
+                </div>
+                <div class="card fade-in">
+                    <div class="card-icon">🎥</div>
+                    <h3>YouTubeに動画</h3>
+                    <p>プレイ動画をYouTubeに投稿。チャンネルをチェックしてね！</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- サーバー情報セクション -->
+    <section class="light" id="server">
+        <div class="container">
+            <h2>🖥️ サーバー情報</h2>
+            
+            <div style="margin-top: 40px;">
+                <h3 style="color: var(--primary-color); margin-bottom: 20px;">Java版 (推奨)</h3>
+                <div class="server-info">
+                    <h3>サーバーアドレス</h3>
+                    <div class="server-address">
+                        <span>virus-ago.gl.joinmc.link</span>
+                        <button class="copy-btn" onclick="copyToClipboard('virus-ago.gl.joinmc.link')">コピー</button>
+                    </div>
+                    <p style="margin-top: 15px; color: var(--text-muted);">このアドレスをマイクラのマルチプレイ画面で入力してください。バージョンは全て対応しています（lobby: 1.21.10）</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3 style="color: var(--secondary-color); margin-bottom: 20px;">Eagler版 (ブラウザで遊べる)</h3>
+                <div class="server-info">
+                    <h3>WebSocket アドレス</h3>
+                    <div class="server-address">
+                        <span>wss://ideal-space-spork-5g7gg9pwgj7fv7q-25577.app.github.dev/</span>
+                        <button class="copy-btn" onclick="copyToClipboard('wss://ideal-space-spork-5g7gg9pwgj7fv7q-25577.app.github.dev/')">コピー</button>
+                    </div>
+                    <p style="margin-top: 15px; color: var(--text-muted);">ブラウザ版またはダウンロード版のマイクラからサーバーアドレスを入力するか、DirectConnectで接続してください。</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; background-color: var(--dark-bg); padding: 20px; border-radius: 8px; border-left: 3px solid var(--primary-color);">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">📋 基本情報</h3>
+                <table>
+                    <tr>
+                        <th>項目</th>
+                        <th>内容</th>
+                    </tr>
+                    <tr>
+                        <td><strong>サーバー名</strong></td>
+                        <td>immotrail-server</td>
+                    </tr>
+                    <tr>
+                        <td><strong>管理者</strong></td>
+                        <td>IMMOTRAIL, metasukech</td>
+                    </tr>
+                    <tr>
+                        <td><strong>バージョン</strong></td>
+                        <td>Java版 全バージョン対応</td>
+                    </tr>
+                    <tr>
+                        <td><strong>プレイ時間</strong></td>
+                        <td>平日: 午後4時～ | 休日: マイペース</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- ガイドセクション -->
+    <section class="dark" id="guide">
+        <div class="container">
+            <h2>📖 はじめるガイド</h2>
+            
+            <div style="margin-top: 40px;">
+                <h3 style="color: var(--primary-color); margin-bottom: 20px;">Java版での接続方法</h3>
+                <div class="cards-grid" style="grid-template-columns: 1fr;">
+                    <div class="card">
+                        <div style="font-size: 2em; margin-bottom: 15px;">1️⃣</div>
+                        <h4 style="color: var(--primary-color); margin-bottom: 10px;">マイクラを起動</h4>
+                        <p>Java版のマインクラフトを起動してください。</p>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 2em; margin-bottom: 15px;">2️⃣</div>
+                        <h4 style="color: var(--primary-color); margin-bottom: 10px;">マルチプレイを選択</h4>
+                        <p>メニューから「マルチプレイ」をクリックしてください。</p>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 2em; margin-bottom: 15px;">3️⃣</div>
+                        <h4 style="color: var(--primary-color); margin-bottom: 10px;">サーバーアドレスを入力</h4>
+                        <p><code>virus-ago.gl.joinmc.link</code> を入力欄に貼り付けてください。</p>
+                    </div>
+                    <div class="card">
+                        <div style="font-size: 2em; margin-bottom: 15px;">4️⃣</div>
+                        <h4 style="color: var(--primary-color); margin-bottom: 10px;">参加</h4>
+                        <p>「サーバーに参加」をクリックすれば、ゲームが始まります！</p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 60px;">
+                <h3 style="color: var(--secondary-color); margin-bottom: 30px;">🎯 Eaglecraft クライアント紹介</h3>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/GyhFbvPhDYs" title="Best Eaglecraft client Myven client" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <p style="text-align: center; margin-top: 15px; color: var(--text-muted);">Best Eaglecraft client について解説しています！</p>
+            </div>
+
+            <div style="margin-top: 40px;">
+                <h3 style="color: var(--secondary-color); margin-bottom: 30px;">⚡ エイム力を上げたい方へ</h3>
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/4nD6puEMa40" title="簡単にエイム力を上げたいときに見る動画" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <p style="text-align: center; margin-top: 15px; color: var(--text-muted);">簡単にエイム力を上げるトレーニング動画です。3分で見られます!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- おまけセクション -->
+    <section class="light" id="omake">
+        <div class="container">
+            <h2>🎮 おまけ：レトロゲーム</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">ブラウザ上でレトログゲームがプレイできます！休日に遊んでみてね</p>
+            <div style="background-color: var(--dark-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <iframe width="100%" height="600" src="https://binbashbanana.github.io/webretro/" style="border: none;"></iframe>
+            </div>
+            <p style="text-align: center; margin-top: 20px; color: var(--text-muted); font-size: 0.9em;">
+                💡 <strong>webretro</strong>：懐かしのゲームボーイ、ファミコン、メガドライブなど、クラシックゲームをブラウザで楽しめます！
+            </p>
+        </div>
+    </section>
+
+    <!-- ルールセクション -->
+    <section class="light" id="rules">
+        <div class="container">
+            <h2>📋 サーバールール</h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 30px;">みんなが楽しく遊ぶために、ルールを守ってね！</p>
+            
+            <ul class="rules-list">
+                <li>🧱 <strong>荒らし禁止</strong> - 他のプレイヤーの施設を壊さない</li>
+                <li>🤝 <strong>マナーを大切に</strong> - 敬意を持ったコミュニケーション</li>
+                <li>🚫 <strong>チート・グリッチ禁止</strong> - フェアプレイで楽しもう</li>
+                <li>💬 <strong>言語は日本語</strong> - コミュニケーションは日本語でお願いします</li>
+                <li>🎮 <strong>みんなで楽しむ</strong> - ワイワイ楽しいゲーム体験を大切に</li>
+            </ul>
+
+            <div style="margin-top: 40px; background-color: var(--card-bg); padding: 30px; border-radius: 8px; border: 2px dashed var(--primary-color);">
+                <p style="color: var(--text-light);">
+                    <strong>💡 ルール違反があったら？</strong><br>
+                    スクラッチプロフィール <strong>IMMOTRAIL</strong> または YouTube の概要欄のメールアドレスでご連絡ください。みんなで一緒に楽しいサーバーを作りましょう！
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- YouTubeセクション -->
+    <section class="dark">
+        <div class="container">
+            <h2>🎥 YouTubeチャンネル</h2>
+            <div class="cards-grid">
+                <div class="card">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📹</div>
+                    <h3>めたすけch</h3>
+                    <p style="margin-bottom: 15px;">メインチャンネルで最新のプレイ動画を公開中！</p>
+                    <a href="https://www.youtube.com/@metasukech" target="_blank" class="cta-button" style="display: block; text-align: center;">チェックする</a>
+                </div>
+                <div class="card">
+                    <div style="font-size: 3em; margin-bottom: 15px;">📹</div>
+                    <h3>めたすけサブ</h3>
+                    <p style="margin-bottom: 15px;">サブチャンネルでも動画を投稿しています。</p>
+                    <a href="https://www.youtube.com/@metasuke-271" target="_blank" class="cta-button" style="display: block; text-align: center;">チェックする</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- お問い合わせセクション -->
+    <section class="light" id="contact">
+        <div class="container">
+            <h2>❓ よくある質問</h2>
+            
+            <div style="margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <div class="card">
+                    <h3 style="color: var(--primary-color);">Q: 初心者でも大丈夫？</h3>
+                    <p>A: もちろんです！初心者向けのサポートを充実させています。わからないことは遠慮なく聞いてください。</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--primary-color);">Q: 統合版は対応していますか？</h3>
+                    <p>A: 現在はJava版のみ対応しています。統合版対応は準備中です。</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--primary-color);">Q: 別のバージョンではプレイできますか？</h3>
+                    <p>A: はい、Java版全バージョンに対応しています。好きなバージョンをお選びください。</p>
+                </div>
+                <div class="card">
+                    <h3 style="color: var(--primary-color);">Q: 新しいバージョンのサーバーをリクエストできますか？</h3>
+                    <p>A: ぜひリクエストしてください！Scratchで IMMOTRAIL に連絡していただければ、対応を検討します。</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 40px; background: linear-gradient(135deg, rgba(255,107,53,0.1), rgba(247,147,30,0.1)); padding: 40px; border-radius: 8px; text-align: center;">
+                <h3 style="color: var(--primary-color); margin-bottom: 15px;">💌 何か質問があれば</h3>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">Scratchプロフィール IMMOTRAIL か、YouTubeの概要欄からお問い合わせください。</p>
+                <a href="https://metasuke.f5.si/" target="_blank" class="cta-button">管理者サイトを見る →</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- フッター -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-links">
+                <a href="#home">ホーム</a>
+                <a href="#server">サーバー</a>
+                <a href="#guide">ガイド</a>
+                <a href="#rules">ルール</a>
+                <a href="#contact">Q&A</a>
+                <a href="#omake">おまけ🎮</a>
+                <a href="https://www.youtube.com/@metasukech" target="_blank">YouTube</a>
+            </div>
+        </div>
+        <div class="footer-copyright">
+            <p>&copy; 2026 immotrail-server. All Rights Reserved.</p>
+            <p style="margin-top: 10px; font-size: 0.85em;">管理者: IMMOTRAIL, metasukech</p>
+        </div>
+    </footer>
+
+    <script>
+        // モバイルメニュー
+        const menuToggle = document.getElementById('menuToggle');
+        const mainNav = document.getElementById('mainNav');
+
+        menuToggle.addEventListener('click', () => {
+            mainNav.classList.toggle('active');
+        });
+
+        // ナビゲーションリンククリック時にメニューを閉じる
+        document.querySelectorAll('nav a').forEach(link => {
+            link.addEventListener('click', () => {
+                mainNav.classList.remove('active');
+            });
+        });
+
+        // コピー機能
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('コピーしました！');
+            }).catch(() => {
+                // フォールバック
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                alert('コピーしました！');
+            });
+        }
+
+        // スムーズスクロール
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                }
+            });
+        });
+
+        // フェードイン効果
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
